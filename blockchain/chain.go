@@ -729,17 +729,14 @@ func (b *BlockChain) connectBlock(node *blockNode, block *bchutil.Block,
 			out:
 				for _, tx := range block.Transactions() {
 					for _, txIn := range tx.MsgTx().TxIn {
-						numDataSigs, _ := txscript.GetSigOpCount(txIn.SignatureScript, txscript.ScriptVerifyCheckDataSig)
+						_, numDataSigs := txscript.GetSigOpCount(txIn.SignatureScript, txscript.ScriptVerifyCheckDataSig)
 						if numDataSigs > 0 {
 							containsCheckDataSig = true
 							break out
 						}
 					}
-
-					// Accumulate the number of signature operations in all transaction
-					// outputs.
 					for _, txOut := range tx.MsgTx().TxOut {
-						numDataSigs, _ := txscript.GetSigOpCount(txOut.PkScript, txscript.ScriptVerifyCheckDataSig)
+						_, numDataSigs := txscript.GetSigOpCount(txOut.PkScript, txscript.ScriptVerifyCheckDataSig)
 						if numDataSigs > 0 {
 							containsCheckDataSig = true
 							break out
