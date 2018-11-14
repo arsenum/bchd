@@ -603,8 +603,9 @@ func asSmallInt(op *opcode) int {
 // signature operations in the script provided by pops. If precise mode is
 // requested then we attempt to count the number of operations for a multisig
 // op. Otherwise we use the maximum.
-func getSigOpCount(pops []parsedOpcode, precise bool, scriptFlags ScriptFlags) int {
+func getSigOpCount(pops []parsedOpcode, precise bool, scriptFlags ScriptFlags) (int, int) {
 	nSigs := 0
+	nDataSigs := 0
 	for i, pop := range pops {
 		switch pop.opcode.value {
 		case OP_CHECKSIG:
@@ -617,6 +618,7 @@ func getSigOpCount(pops []parsedOpcode, precise bool, scriptFlags ScriptFlags) i
 			if scriptFlags.HasFlag(ScriptVerifyCheckDataSig) {
 				nSigs++
 			}
+			nDataSigs ++
 		case OP_CHECKMULTISIG:
 			fallthrough
 		case OP_CHECKMULTISIGVERIFY:
@@ -636,14 +638,14 @@ func getSigOpCount(pops []parsedOpcode, precise bool, scriptFlags ScriptFlags) i
 		}
 	}
 
-	return nSigs
+	return nSigs, nDataSigs
 }
 
 // GetSigOpCount provides a quick count of the number of signature operations
 // in a script. a CHECKSIG operations counts for 1, and a CHECK_MULTISIG for 20.
 // If the script fails to parse, then the count up to the point of failure is
 // returned.
-func GetSigOpCount(script []byte, scriptFlags ScriptFlags) int {
+func GetSigOpCount(script []byte, scriptFlags ScriptFlags) (int, int) {
 	// Don't check error since parseScript returns the parsed-up-to-error
 	// list of pops.
 	pops, _ := parseScript(script)
@@ -662,7 +664,8 @@ func GetPreciseSigOpCount(scriptSig, scriptPubKey []byte, scriptFlags ScriptFlag
 
 	// Treat non P2SH transactions as normal.
 	if !(scriptFlags.HasFlag(ScriptBip16) && isScriptHash(pops)) {
-		return getSigOpCount(pops, true, scriptFlags)
+		count, _ := getSigOpCount(pops, true, scriptFlags)
+		return count
 	}
 
 	// The public key script is a pay-to-script-hash, so parse the signature
@@ -692,7 +695,8 @@ func GetPreciseSigOpCount(scriptSig, scriptPubKey []byte, scriptFlags ScriptFlag
 	// dictate signature operations are counted up to the first parse
 	// failure.
 	shPops, _ := parseScript(shScript)
-	return getSigOpCount(shPops, true, scriptFlags)
+	count, _ := getSigOpCount(shPops, true, scriptFlags)
+	return count
 }
 
 // IsUnspendable returns whether the passed public key script is unspendable, or

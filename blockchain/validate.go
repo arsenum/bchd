@@ -418,14 +418,14 @@ func CountSigOps(tx *bchutil.Tx, scriptFlags txscript.ScriptFlags) int {
 	// inputs.
 	totalSigOps := 0
 	for _, txIn := range msgTx.TxIn {
-		numSigOps := txscript.GetSigOpCount(txIn.SignatureScript, scriptFlags)
+		numSigOps, _ := txscript.GetSigOpCount(txIn.SignatureScript, scriptFlags)
 		totalSigOps += numSigOps
 	}
 
 	// Accumulate the number of signature operations in all transaction
 	// outputs.
 	for _, txOut := range msgTx.TxOut {
-		numSigOps := txscript.GetSigOpCount(txOut.PkScript, scriptFlags)
+		numSigOps, _ := txscript.GetSigOpCount(txOut.PkScript, scriptFlags)
 		totalSigOps += numSigOps
 	}
 

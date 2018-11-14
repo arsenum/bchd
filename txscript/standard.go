@@ -275,14 +275,14 @@ func CalcScriptInfo(sigScript, pkScript []byte, scriptFlags ScriptFlags) (*Scrip
 		} else {
 			si.ExpectedInputs += shInputs
 		}
-		si.SigOps = getSigOpCount(shPops, true, scriptFlags)
+		si.SigOps, _ = getSigOpCount(shPops, true, scriptFlags)
 
 		// All entries pushed to stack (or are OP_RESERVED and exec
 		// will fail).
 		si.NumInputs = len(sigPops)
 
 	default:
-		si.SigOps = getSigOpCount(pkPops, true, scriptFlags)
+		si.SigOps, _ = getSigOpCount(pkPops, true, scriptFlags)
 
 		// All entries pushed to stack (or are OP_RESERVED and exec
 		// will fail).
