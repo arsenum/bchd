@@ -165,6 +165,7 @@ var rpcHandlersBeforeInit = map[string]commandHandler{
 	"help":                  handleHelp,
 	"node":                  handleNode,
 	"ping":                  handlePing,
+	"reconsiderblock":       handleReconsiderBlock,
 	"searchrawtransactions": handleSearchRawTransactions,
 	"sendrawtransaction":    handleSendRawTransaction,
 	"setgenerate":           handleSetGenerate,
@@ -234,7 +235,6 @@ var rpcUnimplemented = map[string]struct{}{
 	"getwork":          {},
 	"invalidateblock":  {},
 	"preciousblock":    {},
-	"reconsiderblock":  {},
 }
 
 // Commands that are available to a limited user
@@ -2748,6 +2748,15 @@ func handleGetTxOut(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		Coinbase: isCoinbase,
 	}
 	return txOutReply, nil
+}
+
+// handleReconsiderBlock implements the reconsiderblock command
+func handleReconsiderBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	c := cmd.(*btcjson.ReconsiderBlockCmd)
+
+	chain := s.cfg.Chain
+
+	return nil, chain.ReconsiderBlock(c.BlockHash)
 }
 
 // handleHelp implements the help command.
