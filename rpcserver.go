@@ -2754,9 +2754,12 @@ func handleGetTxOut(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 func handleReconsiderBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	c := cmd.(*btcjson.ReconsiderBlockCmd)
 
-	chain := s.cfg.Chain
+	hash, err := chainhash.NewHashFromStr(c.BlockHash)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, chain.ReconsiderBlock(c.BlockHash)
+	return nil, s.cfg.Chain.ReconsiderBlock(hash)
 }
 
 // handleHelp implements the help command.

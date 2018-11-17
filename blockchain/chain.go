@@ -1668,20 +1668,15 @@ func (b *BlockChain) locateHeaders(locator BlockLocator, hashStop *chainhash.Has
 // ReconsiderBlock takes a block hash and allows it to be revalidated.
 //
 // This function is safe for concurrent access.
-func (b *BlockChain) ReconsiderBlock(hash string) error {
+func (b *BlockChain) ReconsiderBlock(hash *chainhash.Hash) error {
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 	return b.reconsiderBlock(hash)
 }
 
 // reconsiderBlock takes a block hash and allows it to be revalidated.
-func (b *BlockChain) reconsiderBlock(hash string) error {
-	h, err := chainhash.NewHashFromStr(hash)
-	if err != nil {
-		return err
-	}
-
-	node := b.index.LookupNode(h)
+func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
+	node := b.index.LookupNode(hash)
 	if node == nil {
 		err := fmt.Errorf("block %s is not known", hash)
 		return err
