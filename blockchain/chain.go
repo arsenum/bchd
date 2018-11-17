@@ -1699,7 +1699,9 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 		}
 
 		// Iterate over the list in reverse order so that the forkNode is processed first
-		for e := nodes.Front(); e != nil; e = e.Next() {
+		var next *list.Element
+		for e := nodes.Front(); e != nil; e = next {
+			next = e.Next()
 			n := nodes.Remove(e).(*blockNode)
 
 			// Remove both possible invalid flags from child node.
