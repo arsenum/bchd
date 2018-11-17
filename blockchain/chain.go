@@ -1711,7 +1711,10 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 				continue
 			}
 
-			b.ProcessBlock(blk, BFNone)
+			_, _, err = b.ProcessBlock(blk, BFNone)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1726,9 +1729,8 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 		return nil
 	}
 
-	b.ProcessBlock(blk, BFNone)
-
-	return nil
+	_, _, err = b.ProcessBlock(blk, BFNone)
+	return err
 }
 
 // Prune deletes the block data and spend journals for all blocks deeper than
