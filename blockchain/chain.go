@@ -1722,11 +1722,10 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 	b.index.UnsetStatusFlags(node, statusInvalidAncestor)
 	b.index.UnsetStatusFlags(node, statusValidateFailed)
 
-	// Process the final block if needed
+	// Process the final block. This should definitely exist
 	blk, err := b.BlockByHash(&node.hash)
 	if err != nil {
-		// Return early if we don't have the block
-		return nil
+		return err
 	}
 
 	_, _, err = b.ProcessBlock(blk, BFNone)
