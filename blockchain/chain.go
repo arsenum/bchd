@@ -1682,9 +1682,51 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 		return err
 	}
 
-	// Remove both possible invalid flags.
+	// No need to reconsider, it is already valid
+	if node.status.KnownValid() {
+		return nil
+	}
+
+	// Find fork point if one exists
+	forkNode := b.bestChain.FindFork(node)
+	if forkNode != nil {
+		// Roll back to the fork point and load all the nodes into a list
+		nodes := list.New()
+		for n := node; n != nil && n != forkNode; n = n.parent {
+			nodes.PushBack(n)
+		}
+
+		// Iterate over the list in reverse order so that the forkNode is processed first
+		for e := nodes.Front(); e != nil; e = e.Next() {
+			n := nodes.Remove(e).(*blockNode)
+
+			// Remove both possible invalid flags from child node.
+			b.index.UnsetStatusFlags(n, statusInvalidAncestor)
+			b.index.UnsetStatusFlags(n, statusValidateFailed)
+
+			// Process the child block if needed
+			blk, err := b.BlockByHash(&node.hash)
+			if err != nil {
+				// We might not have the whole block
+				continue
+			}
+
+			b.ProcessBlock(blk, BFNone)
+		}
+	}
+
+	// Remove flags from the final block (the one that is being reconsidered)
 	b.index.UnsetStatusFlags(node, statusInvalidAncestor)
 	b.index.UnsetStatusFlags(node, statusValidateFailed)
+
+	// Process the final block if needed
+	blk, err := b.BlockByHash(&node.hash)
+	if err != nil {
+		// Return early if we don't have the block
+		return nil
+	}
+
+	b.ProcessBlock(blk, BFNone)
 
 	return nil
 }
