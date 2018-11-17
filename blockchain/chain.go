@@ -1687,6 +1687,8 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 		return nil
 	}
 
+	var blk *bchutil.Block
+
 	// Find fork point if one exists
 	forkNode := b.bestChain.FindFork(node)
 	if forkNode != nil {
@@ -1705,9 +1707,12 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 			b.index.UnsetStatusFlags(n, statusValidateFailed)
 
 			// Process the child block if needed
-			blk, err := b.BlockByHash(&node.hash)
+			err := b.db.View(func(dbTx database.Tx) error {
+				var err error
+				blk, err = dbFetchBlockByNode(dbTx, n)
+				return err
+			})
 			if err != nil {
-				// We might not have the whole block
 				continue
 			}
 
@@ -1723,7 +1728,11 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 	b.index.UnsetStatusFlags(node, statusValidateFailed)
 
 	// Process the final block. This should definitely exist
-	blk, err := b.BlockByHash(&node.hash)
+	err := b.db.View(func(dbTx database.Tx) error {
+		var err error
+		blk, err = dbFetchBlockByNode(dbTx, node)
+		return err
+	})
 	if err != nil {
 		return err
 	}
