@@ -1693,7 +1693,7 @@ func (b *BlockChain) reconsiderBlock(hash *chainhash.Hash) error {
 		// Roll back to the fork point and load all the nodes into a list
 		nodes := list.New()
 		for n := node; n != nil && n != forkNode; n = n.parent {
-			nodes.PushBack(n)
+			nodes.PushFront(n)
 		}
 
 		// Iterate over the list in reverse order so that the forkNode is processed first
